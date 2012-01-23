@@ -16,26 +16,13 @@
 	   	});
 	   	setInterval(update,1000/60);
 	   	
-	  	/*var t = [];
-	   	t.push({process:'beginPath'});
-	   	t.push({process:'moveTo',args:[20,20]});
-	   	t.push({process:'lineTo',args:[120,20]});
-	   	t.push({process:'lineTo',args:[120,120]});
-	   	t.push({process:'lineTo',args:[20,120]});
-	   	t.push({process:'closePath'});
-	   	t.push({process:'stroke'});
-	   	array.push(t);
-	   	update();
-	   	*/
-	   	function update(){
-	   		
+	   	function update(){	
 	   		var tmp = array.slice(0);
 	   		if(tmp.length == 0) return;
 		   	tmp.forEach(function(v,i){
 		   		ctx.save();
 		   		ctx.clearRect.call(ctx,0,0,600,400);
 		   		v.forEach(function(vv,ii){
-		   			
 			   		var data = vv.args;
 			   		switch(vv.process){
 			   			case 'beginPath':
@@ -74,11 +61,23 @@
 		   		array.shift();
 		   	});
 	   	}
-	   	
+			function mv(e){
+				console.log('mousemove:%s:%s',e.clientX/30,e.clientY/30);
+				socket.emit('mouse move',{x:e.clientX, y:e.clientY});
+			}
+			document.onmousedown = function(){
+				console.log('mousedown');
+				document.onmousemove = mv;
+			};
+			document.onmouseup = function(){
+				console.log('mouseup');
+				socket.emit('mouse up');
+				document.onmousemove = function(){};
+			};
 	   }
 	   </script>
    </head>
-   <body onload="init();" style="margin:0px;">
-  	<canvas id='canvas' width="600" height="400" style="background-color:#eee;"></canvas>
+   <body onload="init();">
+  	<canvas id='canvas' width='600' height='400' style='background-color:#eee;'></canvas>
    </body>
 </html>

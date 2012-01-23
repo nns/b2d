@@ -39,19 +39,25 @@ app.listen(3000);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
 
+
+var   b2Vec2 = Box2D.Common.Math.b2Vec2
+, b2AABB = Box2D.Collision.b2AABB
+,	b2BodyDef = Box2D.Dynamics.b2BodyDef
+,	b2Body = Box2D.Dynamics.b2Body
+,	b2FixtureDef = Box2D.Dynamics.b2FixtureDef
+,	b2Fixture = Box2D.Dynamics.b2Fixture
+,	b2World = Box2D.Dynamics.b2World
+,	b2MassData = Box2D.Collision.Shapes.b2MassData
+,	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
+,	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
+,	b2DebugDraw = Box2D.Dynamics.b2DebugDraw
+	;
+
+
+
+
 var world;
 function init(socket) {
- var   b2Vec2 = Box2D.Common.Math.b2Vec2
- 	,	b2BodyDef = Box2D.Dynamics.b2BodyDef
- 	,	b2Body = Box2D.Dynamics.b2Body
- 	,	b2FixtureDef = Box2D.Dynamics.b2FixtureDef
- 	,	b2Fixture = Box2D.Dynamics.b2Fixture
- 	,	b2World = Box2D.Dynamics.b2World
- 	,	b2MassData = Box2D.Collision.Shapes.b2MassData
- 	,	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
- 	,	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
- 	,	b2DebugDraw = Box2D.Dynamics.b2DebugDraw
-    ;
  
  world = new b2World(
        new b2Vec2(0, 10)    //gravity
@@ -67,10 +73,16 @@ function init(socket) {
  
  //create ground
  bodyDef.type = b2Body.b2_staticBody;
- bodyDef.position.x = 9;
- bodyDef.position.y = 13;
  fixDef.shape = new b2PolygonShape;
- fixDef.shape.SetAsBox(10, 0.5);
+ fixDef.shape.SetAsBox(20,2);
+ bodyDef.position.Set(10,400/ 30 + 1.8);
+ world.CreateBody(bodyDef).CreateFixture(fixDef);
+ bodyDef.position.Set(10, -1.8);
+ world.CreateBody(bodyDef).CreateFixture(fixDef);
+ fixDef.shape.SetAsBox(2,14);
+ bodyDef.position.Set(-1.8, 13);
+ world.CreateBody(bodyDef).CreateFixture(fixDef);
+ bodyDef.position.Set(21.8, 13);
  world.CreateBody(bodyDef).CreateFixture(fixDef);
  
  //create some objects
@@ -98,7 +110,7 @@ function init(socket) {
 	debugDraw.SetSprite(rm);
 	//debugDraw.SetSprite(ctx);
 	debugDraw.SetDrawScale(30.0);
-	debugDraw.SetFillAlpha(0.3);
+	debugDraw.SetFillAlpha(0.5);
 	debugDraw.SetLineThickness(1.0);
 	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
 	world.SetDebugDraw(debugDraw);
@@ -107,12 +119,40 @@ function init(socket) {
 };
 
 //var i = 0;
+var isMouseDown;
+var mouseJoint;
+var clientx;
+var clienty;
+var mousePVec;
 function update() {
  world.Step(
        1/30   //frame-rate
     ,  10       //velocity iterations
     ,  10       //position iterations
  );
+
+if(isMouseDown && (!mouseJoint)){
+	var body = getBodyAtMouse();
+	if(body){
+		var md = new b2MouseJoinDef();
+		md.bodyA = world.GetGroundBody();
+		md.bodyB = body;
+		md.target.Set(clientx, clienty);
+		mc.collideConnected = true;
+		md.maxForce = 300.0 * body.Getmass();
+		body.SetAwake(true);
+	}
+}
+
+if(mouseJoint){
+	if(isMouseDown){
+		mouseJoint.SetTarget(new b2Vec2(clientx, clienty));
+	} else{
+		world.DestroyJoint(mouseJoint);
+		mouseJoint = null;
+	}
+}
+
 
  world.DrawDebugData();
  world.ClearForces();
@@ -122,10 +162,43 @@ function update() {
 
 };
 
+
+function getBodyAtMouse(){
+	mousePVec = new b2Vec2(clientx , clienty);
+	var aabb = new b2AABB();
+	aabb.lowerBound.Set(clientx- 0.001, clienty- 0.001);
+	aabb.upperBound.Set(clientx-0.001, clienty)- 0.001;
+	selectedBody = null;
+	world.QueryAABB(getBodyCB, aabb);
+	return selectedBody;
+}
+
+function getBodyCB(fixture){
+	console.log(fixture.GetBody().GetType());
+	if(fixture.GetBody().GetType() != b2Body.b2_staticBody){
+		console.log(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec));
+		if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(),mousePVec)){
+			selectBody = fixture.GetBody();
+			console.log(fixture);
+			console.log('selectedbody:%s',selectedBody);
+			return false;
+		}
+	}
+}
+
 var io = sio.listen(app);
 
 io.sockets.on('connection', function(socket){
 	init(socket);
+
+	socket.on('mouse move',function(data){
+		isMouseDown = true;
+		clientx = data.x/30;
+		clienty = data.y/30;
+	});
+	socket.on('mouse up',function(){
+		isMouseDown = false;
+	});
 });
 io.configure(function () {
 	io.set('transports', ['websocket']);

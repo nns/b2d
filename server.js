@@ -1,4 +1,4 @@
-var Box2D = require('./Box2dWeb-2.1.a.3.js');
+var Box2D = require('./lib/Box2dWeb-2.1.a.3.js');
 var sio = require('socket.io');
 
 var world;

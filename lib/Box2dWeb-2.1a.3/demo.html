@@ -101,6 +101,7 @@
          function handleMouseMove(e) {
             mouseX = (e.clientX - canvasPosition.x) / 30;
             mouseY = (e.clientY - canvasPosition.y) / 30;
+            //console.log('mousex:%s,mousey:%s',mouseX,mouseY);
          };
          
          function getBodyAtMouse() {
@@ -117,9 +118,11 @@
          }
 
          function getBodyCB(fixture) {
+            console.log('getbodycb');
             if(fixture.GetBody().GetType() != b2Body.b2_staticBody) {
                if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
                   selectedBody = fixture.GetBody();
+                  console.log('selectedbody:%s',selectedBody);
                   return false;
                }
             }
@@ -133,6 +136,7 @@
             if(isMouseDown && (!mouseJoint)) {
                var body = getBodyAtMouse();
                if(body) {
+                  console.log(mouseX, mouseY);
                   var md = new b2MouseJointDef();
                   md.bodyA = world.GetGroundBody();
                   md.bodyB = body;
