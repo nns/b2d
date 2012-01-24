@@ -97,7 +97,7 @@ function init(socket) {
 	debugDraw.SetSprite(rm);
 	//debugDraw.SetSprite(ctx);
 	debugDraw.SetDrawScale(30.0);
-	debugDraw.SetFillAlpha(0.5);
+	debugDraw.SetFillAlpha(0);
 	debugDraw.SetLineThickness(1.0);
 	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
 	world.SetDebugDraw(debugDraw);
