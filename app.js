@@ -87,28 +87,36 @@ function init(socket) {
 	//create some objects
 	bodyDef.type = b2Body.b2_dynamicBody;
 	function setShape(){
+		var fixture = new b2FixtureDef();
+
 		var x = Math.floor(Math.random() * 10);
 		if(x < 5){
 			for(var i = 0; i < 15; ++i) {
 				if(Math.random() > 0.5) {
-					fixDef.shape = new b2PolygonShape;
-					fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
+					fixture.shape = new b2PolygonShape;
+					fixture.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
 				} else {
-					fixDef.shape = new b2CircleShape(Math.random() + 0.1);
+					fixture.shape = new b2CircleShape(Math.random() + 0.1);
 				}
 				bodyDef.position.x = Math.random() * 10;
 				bodyDef.position.y = Math.random() * 10;
-				world.CreateBody(bodyDef).CreateFixture(fixDef);
+				fixture.density = Math.random() * 1;
+				fixture.friction = Math.random() * 1;
+				fixture.restitution = Math.random() * 1;
+				world.CreateBody(bodyDef).CreateFixture(fixture);
 			}
 		}
 		if(x >= 5){
 			for(var i = 0; i < 100; i++){
+				fixture.density = Math.random() * 1;
+				fixture.friction = Math.random() >0.5? 1:0;
+				fixture.restitution = Math.random() * 1;
 				setTimeout(function(){
-					fixDef.shape = new b2PolygonShape;
-					fixDef.shape.SetAsBox(0.2,0.2);
+					fixture.shape = new b2PolygonShape;
+					fixture.shape.SetAsBox(0.4,0.4);
 					bodyDef.position.x = 5 + (Math.random()+0.1 );
 					bodyDef.position.y = 1;
-					world.CreateBody(bodyDef).CreateFixture(fixDef);
+					world.CreateBody(bodyDef).CreateFixture(fixture);
 				},100*i);
 			}
 		}
