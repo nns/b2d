@@ -77,6 +77,7 @@ function init(socket) {
 	world.CreateBody(bodyDef).CreateFixture(fixDef);
 	
 
+
 	//create some objects
 	bodyDef.type = b2Body.b2_dynamicBody;
 	for(var i = 0; i < 10; ++i) {

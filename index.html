@@ -28,9 +28,8 @@
 	 	  	socket.on('action',function(data){
 	   			array.push(data);
 	   		});
-	   		setInterval(update,1000/60);
-	  
-				var counter = 0;
+	   		setInterval(update,1000/60);	  
+			var counter = 0;
 	   		function update(){
 					counter++;
 	   			var tmp = array.slice(0);
