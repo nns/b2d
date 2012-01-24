@@ -34,6 +34,13 @@ app.get('/', function(req, res){
 	res.sendfile('index.html');
 });
 
+var intervalid;
+app.get('/reset',function(req, res){
+	clearInterval(intervalid);
+	isInit = false;
+	res.redirect('/');
+});
+
 app.listen(3000);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
@@ -77,32 +84,47 @@ function init(socket) {
 	world.CreateBody(bodyDef).CreateFixture(fixDef);
 	
 
-
 	//create some objects
 	bodyDef.type = b2Body.b2_dynamicBody;
-	for(var i = 0; i < 10; ++i) {
-		if(Math.random() > 0.5) {
-			fixDef.shape = new b2PolygonShape;
-			fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
-		} else {
-			fixDef.shape = new b2CircleShape(Math.random() + 0.1);
+	function setShape(){
+		var x = Math.floor(Math.random() * 10);
+		if(x < 5){
+			for(var i = 0; i < 15; ++i) {
+				if(Math.random() > 0.5) {
+					fixDef.shape = new b2PolygonShape;
+					fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
+				} else {
+					fixDef.shape = new b2CircleShape(Math.random() + 0.1);
+				}
+				bodyDef.position.x = Math.random() * 10;
+				bodyDef.position.y = Math.random() * 10;
+				world.CreateBody(bodyDef).CreateFixture(fixDef);
+			}
 		}
-		bodyDef.position.x = Math.random() * 10;
-		bodyDef.position.y = Math.random() * 10;
-		world.CreateBody(bodyDef).CreateFixture(fixDef);
+		if(x >= 5){
+			for(var i = 0; i < 30; i++){
+				setTimeout(function(){
+					fixDef.shape = new b2PolygonShape;
+					fixDef.shape.SetAsBox(0.5,0.5);
+					bodyDef.position.x = 5 + (Math.random()+0.1 );
+					bodyDef.position.y = 1;
+					world.CreateBody(bodyDef).CreateFixture(fixDef);
+				},100*i);
+			}
+		}
 	}
+	setShape();
 	//setup debug draw
 	var debugDraw = new b2DebugDraw();
 	var rm = new RemoteCanvas(socket);
 	debugDraw.SetSprite(rm);
-	//debugDraw.SetSprite(ctx);
 	debugDraw.SetDrawScale(30.0);
 	debugDraw.SetFillAlpha(0);
 	debugDraw.SetLineThickness(1.0);
-	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit );
 	world.SetDebugDraw(debugDraw);
 
-	setInterval(update, 1000/24);
+	intervalid = setInterval(update, 1000/24);
 }
 
 //var i = 0;
