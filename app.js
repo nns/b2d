@@ -124,7 +124,14 @@ function init(socket) {
 	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit );
 	world.SetDebugDraw(debugDraw);
 
-	intervalid = setInterval(update, 1000/24);
+	intervalid = setInterval(function(){
+		update();
+		console.log(rm.array.length);
+		if(rm.array.length > 200){
+			rm.socket.volatile.emit('action', rm.array);
+			rm.array = [];
+		}
+	}, 1000/24);
 }
 
 //var i = 0;
@@ -244,11 +251,11 @@ RemoteCanvas.prototype ={
 	},
 	stroke:function(){
 		this.array.push({process:'stroke'});
-		if(this.array.length > 350){
+		/*if(this.array.length > 350){
 			console.log(this.array.length);
 			this.socket.volatile.emit('action', this.array);
 			this.array = [];
-		}
+		}*/
 	},
 	setStrokeStyle:function(style){
 		this.array.push({process:'strokeStyle',args:style});
