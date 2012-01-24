@@ -102,10 +102,10 @@ function init(socket) {
 			}
 		}
 		if(x >= 5){
-			for(var i = 0; i < 30; i++){
+			for(var i = 0; i < 100; i++){
 				setTimeout(function(){
 					fixDef.shape = new b2PolygonShape;
-					fixDef.shape.SetAsBox(0.5,0.5);
+					fixDef.shape.SetAsBox(0.2,0.2);
 					bodyDef.position.x = 5 + (Math.random()+0.1 );
 					bodyDef.position.y = 1;
 					world.CreateBody(bodyDef).CreateFixture(fixDef);
@@ -119,21 +119,17 @@ function init(socket) {
 	var rm = new RemoteCanvas(socket);
 	debugDraw.SetSprite(rm);
 	debugDraw.SetDrawScale(30.0);
-	debugDraw.SetFillAlpha(0);
+	debugDraw.SetFillAlpha(0.4);
 	debugDraw.SetLineThickness(1.0);
 	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit );
 	world.SetDebugDraw(debugDraw);
 
 	intervalid = setInterval(function(){
 		update();
-		console.log(rm.array.length);
-		if(rm.array.length > 200){
-			rm.socket.volatile.emit('action', rm.array);
-			rm.array = [];
-		}
+		rm.socket.volatile.emit('action', rm.array);
+		rm.array = [];
 	}, 1000/24);
 }
-
 //var i = 0;
 var isMouseDown;
 var mouseJoint;
