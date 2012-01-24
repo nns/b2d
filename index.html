@@ -2,79 +2,77 @@
 <html>
    <head>
       <title>Demo</title>
-	   <script src="/socket.io/socket.io.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
 	   <script type="text/javascript">
-	   function init(){
-	   	var canvas = document.getElementById('canvas');
-  		var ctx = canvas.getContext('2d');
-  		ctx.strokeStyle = '#eee';
-	   	var socket = io.connect();
-	   	
-	   	var array = [];
-	   	socket.on('action',function(data){
-	   		array.push(data);
-	   	});
-	   	setInterval(update,1000/60);
-	   	
-	   	function update(){	
-	   		var tmp = array.slice(0);
-	   		if(tmp.length == 0) return;
-		   	tmp.forEach(function(v,i){
-		   		ctx.save();
-		   		ctx.clearRect.call(ctx,0,0,600,400);
-		   		v.forEach(function(vv,ii){
-			   		var data = vv.args;
-			   		switch(vv.process){
-			   			case 'beginPath':
-			   				ctx.beginPath();
-			   				break;
-			   			case 'moveTo':
-			   				ctx.moveTo.apply(ctx,data);
-			   				break;
-			   			case 'lineTo':
-			   				ctx.lineTo.apply(ctx,data);
-			   				break;
-			   			case 'closePath':
-			   				ctx.closePath();
-			   				break;
-			   			case 'stroke':
-			   				ctx.stroke();
-			   				break;
-			   			case 'fill':
-			   				ctx.fill();
-			   				break;
-			   			case 'arc':
-			   				ctx.arc.apply(ctx,data);
-			   				break;
-			   			case 'clearRect':
-			   				ctx.clearRect.apply(ctx,data);
-			   				break;
-			   			case 'strokeStyle':
-			   				ctx.strokeStyle = data;
-			   				break;
-						case 'fillStyle':
-			   				ctx.fillStyle = data;
-			   				break;
-			   		}
-		   		});
-		   		ctx.restore();
-		   		array.shift();
-		   	});
-	   	}
-			function mv(e){
-				console.log('mousemove:%s:%s',e.clientX/30,e.clientY/30);
-				socket.emit('mouse move',{x:e.clientX, y:e.clientY});
+		function getElementPosition(element) {
+			 	var elem=element, tagname="", x=0, y=0;
+			 	while((typeof(elem) == "object") && (typeof(elem.tagname) != "undefined")) {
+				 y += elem.offsettop;
+				 x += elem.offsetleft;
+				 tagname = elem.tagname.touppercase();
+				 if(tagname == "body")
+					 elem=0;
+				if(typeof(elem) == "object") {
+					if(typeof(elem.offsetparent) == "object")
+						elem = elem.offsetparent;
+				}
 			}
-			document.onmousedown = function(){
-				console.log('mousedown');
-				document.onmousemove = mv;
-			};
-			document.onmouseup = function(){
-				console.log('mouseup');
+			return {x: x, y: y};
+		}
+		function init(){
+	   		var canvas = document.getElementById('canvas');
+  			var ctx = canvas.getContext('2d');
+  			ctx.strokeStyle = '#eee';
+	   		var socket = io.connect();
+	   		var array = [];
+	 	  	socket.on('action',function(data){
+	   			array.push(data);
+	   		});
+	   		setInterval(update,1000/60);
+	   
+	   		function update(){	
+	   			var tmp = array.slice(0);
+	   			if(tmp.length == 0) return;
+					ctx.clearRect.call(ctx,0,0,600,400);
+					console.log('clear');
+		   		tmp.forEach(function(v,i){
+		   			v.forEach(function(vv,ii){
+			   			var data = vv.args;
+			   			switch(vv.process){
+				   			case 'beginPath':ctx.beginPath();break;
+				   			case 'moveTo':ctx.moveTo.apply(ctx,data);break;
+				   			case 'lineTo':ctx.lineTo.apply(ctx,data);break;
+							case 'closePath':ctx.closePath();break;
+				   			case 'stroke':ctx.stroke();break;
+				   			case 'fill':ctx.fill();break;
+				   			case 'arc':ctx.arc.apply(ctx,data);break;
+				   			case 'clearRect':ctx.clearRect.apply(ctx,data);break;
+				   			case 'strokeStyle':ctx.strokeStyle = data;break;
+							case 'fillStyle':ctx.fillStyle = data;break;
+			   			}
+		   			});
+		   			array.shift();
+		   		});
+	   		}
+			var canvasPosition = getElementPosition(canvas);
+			
+			document.addEventListener("mousedown", function(e) {
+				socket.emit('mouse down');
+				handleMouseMove(e);
+				document.addEventListener("mousemove", handleMouseMove, true);
+			}, true);
+
+			document.addEventListener("mouseup", function() {
+				document.removeEventListener("mousemove", handleMouseMove, true);
 				socket.emit('mouse up');
-				document.onmousemove = function(){};
-			};
-	   }
+			}, true);
+
+			function handleMouseMove(e) {
+				var mouseX = (e.clientX - canvasPosition.x) / 30;
+				var mouseY = (e.clientY - canvasPosition.y) / 30;
+				socket.emit('mouse move',{x:mouseX, y:mouseY});
+			}
+		}
 	   </script>
    </head>
    <body onload="init();">
