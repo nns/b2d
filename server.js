@@ -254,7 +254,7 @@ io.sockets.on('connection', function(socket){
 });
 
 io.configure(function () {
-	io.set('transports', ['websocket']);
+	io.set('transports', ['websocket', 'xhr-polling']);
 	io.set('log level',2);
 });
 io.configure('development', function () {
