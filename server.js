@@ -30,7 +30,7 @@ app.configure('production', function(){
 });
 
 // Routes
-app.get('/', function(req, res){
+app.get('/demo', function(req, res){
 	res.sendfile('index.html');
 });
 
@@ -38,7 +38,7 @@ var intervalid;
 app.get('/reset',function(req, res){
 	clearInterval(intervalid);
 	isInit = false;
-	res.redirect('/');
+	res.redirect('/demo');
 });
 
 app.listen(process.argv[2] || 80);
@@ -142,11 +142,10 @@ function init(socket) {
 		var zip = require('./public/javascripts/deflate.js').zip_deflate(JSON.stringify(rm.array));
 		var base64 = require('./public/javascripts/base64.js').base64encode(zip);
 		rm.socket.volatile.emit('action', base64);
-		//rm.socket.volatile.emit('action', rm.array);
 		rm.array = [];
 	}, 1000/fps);
 }
-var fps = 30;
+var fps = 24;
 function update(){
 	world.Step(1/fps, 10, 10);
 	for(var i in mm){
