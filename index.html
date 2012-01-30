@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
    <head>
-      <title>demo</title>
+      <title>Demo</title>
       <script src="/socket.io/socket.io.js"></script>
-      <script src="/javascripts/base64.js"></script>
+	  <script src="/javascripts/base64.js"></script>
       <script src="/javascripts/inflate.js"></script>
 	   <script type="text/javascript">
 		function getElementPosition(element) {
@@ -28,28 +28,31 @@
 	   		var socket = io.connect();
 	   		var array = [];
 	 	  	socket.on('action',function(data){
-	 	  		array.push(JSON.parse(zip_inflate(base64decode(data))));
+	   			//array.push(data);
+	   			array.push(JSON.parse(zip_inflate(base64decode(data))));
 	   		});
-	   		setInterval(update,1000/60);
+	   		setInterval(update,1000/60);	  
 			var counter = 0;
 	   		function update(){
 					counter++;
 	   			var tmp = array.slice(0);
 	   			if(tmp.length == 0) return;
+					//ctx.clearRect.call(ctx,0,0,600,400);
+					//console.log('clear');
 		   		tmp.forEach(function(v,i){
 		   			v.forEach(function(vv,ii){
 			   			var data = vv.args;
-			   			switch(vv.p){
-				   			case 'BP':ctx.beginPath();break;
-				   			case 'MT':ctx.moveTo.apply(ctx,data);break;
-				   			case 'LT':ctx.lineTo.apply(ctx,data);break;
-							case 'CP':ctx.closePath();break;
-				   			case 'ST':ctx.stroke();break;
-				   			case 'FL':ctx.fill();break;
-				   			case 'AC':ctx.arc.apply(ctx,data);break;
-				   			case 'CR':ctx.clearRect.apply(ctx,data);break;
-				   			case 'SS':ctx.strokeStyle = data;break;
-							case 'FS':ctx.fillStyle = data;break;
+			   			switch(vv.process){
+				   			case 'beginPath':ctx.beginPath();break;
+				   			case 'moveTo':ctx.moveTo.apply(ctx,data);break;
+				   			case 'lineTo':ctx.lineTo.apply(ctx,data);break;
+							case 'closePath':ctx.closePath();break;
+				   			case 'stroke':ctx.stroke();break;
+				   			case 'fill':ctx.fill();break;
+				   			case 'arc':ctx.arc.apply(ctx,data);break;
+				   			case 'clearRect':ctx.clearRect.apply(ctx,data);break;
+				   			case 'strokeStyle':ctx.strokeStyle = data;break;
+							case 'fillStyle':ctx.fillStyle = data;break;
 			   			}
 		   			});
 		   			array.shift();
