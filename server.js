@@ -95,7 +95,7 @@ function init(socket) {
 		var fixture = new b2FixtureDef();
 		
 		if(worldCount % 2 == 0){
-			for(var i = 0; i < 15; ++i) {
+			for(var i = 0; i < 20; ++i) {
 				if(Math.random() > 0.5) {
 					fixture.shape = new b2PolygonShape;
 					fixture.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
@@ -139,18 +139,24 @@ function init(socket) {
 
 	intervalid = setInterval(function(){
 		update();
-		rm.socket.volatile.emit('action', rm.array);
+		//console.log('frame:%s,length:%s',frameCount++,rm.array.length)
+		if(frameCount % fps == 0) {frameCount = 1;}
+		//ˆ³k
+		var zip = require('./public/javascripts/deflate.js').zip_deflate(JSON.stringify(rm.array));
+		var base64 = require('./public/javascripts/base64.js').base64encode(zip);
+		//console.log(base64);
+		//var base64d = require('./public/javascripts/base64.js').base64decode(base64);
+		//var str = require('./public/javascripts/inflate.js').zip_inflate(base64d);
+		//console.log(JSON.parse(str));
+		rm.socket.volatile.emit('action', base64);
+		//rm.socket.volatile.emit('action', rm.array);
 		rm.array = [];
+		
 	}, 1000/fps);
 }
-var fps = 60;
-//var i = 0;
-//var isMouseDown;
-//var mouseJoint;
-//var clientx;
-//var clienty;
-//var mousePVec;
-//var selectedBody;
+var fps = 30;
+var frameCount = 1;
+
 function update(){
 	world.Step(1/fps, 10, 10);
 	for(var i in mm){
@@ -177,33 +183,8 @@ function update(){
 			}
 		}
 	}//end of for
-/*
-	if(isMouseDown && (!mouseJoint)){
-		var body = getBodyAtMouse();
-		if(body){
-			var md = new b2MouseJointDef();
-			md.bodyA = world.GetGroundBody();
-			md.bodyB = body;
-			md.target.Set(clientx, clienty);
-			md.collideConnected = true;
-			md.maxForce = 300.0 * body.GetMass();
-			mouseJoint = world.CreateJoint(md);
-			body.SetAwake(true);
-		}
-	}
-	if(mouseJoint){
-		if(isMouseDown){
-			mouseJoint.SetTarget(new b2Vec2(clientx, clienty));
-		}else{
-			world.DestroyJoint(mouseJoint);
-			mouseJoint = null;
-		}
-	}
-*/
 	world.DrawDebugData();
 	world.ClearForces();
-	//var fs = require('fs');
-	//fs.writeFileSync('/var/share/img/' + (i++) + '.png',canvas.toBuffer());
 }
 
 var currentData;
@@ -216,13 +197,6 @@ function getBodyAtMouse(data){
 		currentData = data;
 		world.QueryAABB(getBodyCB, aabb);
 		return data.selectedBody;
-//	mousePVec = new b2Vec2(clientx , clienty);
-//	var aabb = new b2AABB();
-//	aabb.lowerBound.Set(clientx- 0.001, clienty - 0.001);
-//	aabb.upperBound.Set(clientx-0.001, clienty + 0.001);
-//	selectedBody = null;
-//	world.QueryAABB(getBodyCB, aabb);
-//	return selectedBody;
 }
 
 function getBodyCB(fixture){
@@ -257,6 +231,9 @@ io.sockets.on('connection', function(socket){
 		mm[socket.id].isMouseDown = false;
 		console.log('socket.id:%s mouse up',socket.id);
 	});
+	socket.on('disconnect',function(){
+		delete mm[socket.id];
+	});
 });
 
 io.configure(function () {
@@ -278,46 +255,38 @@ function RemoteCanvas(socket){
 }
 RemoteCanvas.prototype ={
 	clearRect:function(sx,sy,ex,ey){
-		//this.socket.emit('clearRect',[sx,sy,ex,ey]);
-		//this.array.push({process:'clearRect',args: [sx,sy,ex,ey]});
-		//this.socket.volatile.emit('action', this.array);
-		//this.array = [];
+		this.array.push({p:'CR',args: [sx,sy,ex,ey]});
 	},
 	beginPath:function(){
-		this.array.push({process:'beginPath'});
+		this.array.push({p:'BP'});
 	},
 
 	moveTo:function(x,y){
-		this.array.push({process:'moveTo',args:[x,y]});
+		this.array.push({p:'Mt',args:[Math.round(x),Math.round(y)]});
 	},
 
 	lineTo:function(x,y){
-		this.array.push({process:'lineTo',args:[x,y]});
+		this.array.push({p:'LT',args:[Math.round(x),Math.round(y)]});
 	},
 
 	closePath:function(){
-		this.array.push({process:'closePath'});
+		this.array.push({p:'CP'});
 	},
 	stroke:function(){
-		this.array.push({process:'stroke'});
-		/*if(this.array.length > 350){
-			console.log(this.array.length);
-			this.socket.volatile.emit('action', this.array);
-			this.array = [];
-		}*/
+		this.array.push({p:'ST'});
 	},
 	setStrokeStyle:function(style){
-		this.array.push({process:'strokeStyle',args:style});
+		this.array.push({p:'SS',args:style});
 	},
 	setFillStyle:function(style){
-		this.array.push({process:'fillStyle',args:style});
+		this.array.push({p:'FS',args:style});
 	},
 
 	fill:function(){
-		this.array.push({process:'fill'});
+		this.array.push({p:'FL'});
 	},
 
 	arc:function(x, y, r, val, pi, flg){
-		this.array.push({process:'arc',args: [x,y,r,val, pi, flg]});
+		this.array.push({p:'AC',args: [Math.round(x),Math.round(y),r,val, pi, flg]});
 	}
 }
