@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
    <head>
-      <title>Demo</title>
+      <title>demo</title>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/javascripts/base64.js"></script>
       <script src="/javascripts/inflate.js"></script>
@@ -29,7 +29,6 @@
 	   		var array = [];
 	 	  	socket.on('action',function(data){
 	 	  		array.push(JSON.parse(zip_inflate(base64decode(data))));
-	   			//array.push(data);
 	   		});
 	   		setInterval(update,1000/60);
 			var counter = 0;
