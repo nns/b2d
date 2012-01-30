@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -30,7 +29,7 @@ app.configure('production', function(){
 });
 
 // Routes
-app.get('/', function(req, res){
+app.get('/demo', function(req, res){
 	res.sendfile('index.html');
 });
 
@@ -38,7 +37,7 @@ var intervalid;
 app.get('/reset',function(req, res){
 	clearInterval(intervalid);
 	isInit = false;
-	res.redirect('/');
+	res.redirect('/demo');
 });
 
 app.listen(process.argv[2] || 80);
@@ -141,7 +140,7 @@ function init(socket) {
 		update();
 		//console.log('frame:%s,length:%s',frameCount++,rm.array.length)
 		if(frameCount % fps == 0) {frameCount = 1;}
-		//à≥èk
+		//ÔøΩÔøΩÔøΩk
 		var zip = require('./public/javascripts/deflate.js').zip_deflate(JSON.stringify(rm.array));
 		var base64 = require('./public/javascripts/base64.js').base64encode(zip);
 		//console.log(base64);
