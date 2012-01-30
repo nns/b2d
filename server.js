@@ -30,7 +30,7 @@ app.configure('production', function(){
 });
 
 // Routes
-app.get('/', function(req, res){
+app.get('/demo', function(req, res){
 	res.sendfile('index.html');
 });
 
@@ -38,7 +38,7 @@ var intervalid;
 app.get('/reset',function(req, res){
 	clearInterval(intervalid);
 	isInit = false;
-	res.redirect('/');
+	res.redirect('/demo');
 });
 
 app.listen(process.argv[2] || 80);
@@ -139,22 +139,15 @@ function init(socket) {
 
 	intervalid = setInterval(function(){
 		update();
-		//console.log('frame:%s,length:%s',frameCount++,rm.array.length)
 		if(frameCount % fps == 0) {frameCount = 1;}
-		//à≥èk
 		var zip = require('./public/javascripts/deflate.js').zip_deflate(JSON.stringify(rm.array));
 		var base64 = require('./public/javascripts/base64.js').base64encode(zip);
-		//console.log(base64);
-		//var base64d = require('./public/javascripts/base64.js').base64decode(base64);
-		//var str = require('./public/javascripts/inflate.js').zip_inflate(base64d);
-		//console.log(JSON.parse(str));
 		rm.socket.volatile.emit('action', base64);
-		//rm.socket.volatile.emit('action', rm.array);
 		rm.array = [];
 		
 	}, 1000/fps);
 }
-var fps = 30;
+var fps = 24;
 var frameCount = 1;
 
 function update(){
