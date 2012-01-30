@@ -1,3 +1,4 @@
+
 /**
  * Module dependencies.
  */
@@ -29,7 +30,7 @@ app.configure('production', function(){
 });
 
 // Routes
-app.get('/demo', function(req, res){
+app.get('/', function(req, res){
 	res.sendfile('index.html');
 });
 
@@ -37,7 +38,7 @@ var intervalid;
 app.get('/reset',function(req, res){
 	clearInterval(intervalid);
 	isInit = false;
-	res.redirect('/demo');
+	res.redirect('/');
 });
 
 app.listen(process.argv[2] || 80);
@@ -94,7 +95,7 @@ function init(socket) {
 		var fixture = new b2FixtureDef();
 		
 		if(worldCount % 2 == 0){
-			for(var i = 0; i < 20; ++i) {
+			for(var i = 0; i < 15; ++i) {
 				if(Math.random() > 0.5) {
 					fixture.shape = new b2PolygonShape;
 					fixture.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
@@ -138,24 +139,14 @@ function init(socket) {
 
 	intervalid = setInterval(function(){
 		update();
-		//console.log('frame:%s,length:%s',frameCount++,rm.array.length)
-		if(frameCount % fps == 0) {frameCount = 1;}
-		//���k
 		var zip = require('./public/javascripts/deflate.js').zip_deflate(JSON.stringify(rm.array));
 		var base64 = require('./public/javascripts/base64.js').base64encode(zip);
-		//console.log(base64);
-		//var base64d = require('./public/javascripts/base64.js').base64decode(base64);
-		//var str = require('./public/javascripts/inflate.js').zip_inflate(base64d);
-		//console.log(JSON.parse(str));
 		rm.socket.volatile.emit('action', base64);
 		//rm.socket.volatile.emit('action', rm.array);
 		rm.array = [];
-		
 	}, 1000/fps);
 }
 var fps = 30;
-var frameCount = 1;
-
 function update(){
 	world.Step(1/fps, 10, 10);
 	for(var i in mm){
@@ -230,9 +221,6 @@ io.sockets.on('connection', function(socket){
 		mm[socket.id].isMouseDown = false;
 		console.log('socket.id:%s mouse up',socket.id);
 	});
-	socket.on('disconnect',function(){
-		delete mm[socket.id];
-	});
 });
 
 io.configure(function () {
@@ -254,38 +242,33 @@ function RemoteCanvas(socket){
 }
 RemoteCanvas.prototype ={
 	clearRect:function(sx,sy,ex,ey){
-		this.array.push({p:'CR',args: [sx,sy,ex,ey]});
+		this.array.push({process:'clearRect',args: [sx,sy,ex,ey]});
 	},
 	beginPath:function(){
-		this.array.push({p:'BP'});
+		this.array.push({process:'beginPath'});
 	},
-
 	moveTo:function(x,y){
-		this.array.push({p:'Mt',args:[Math.round(x),Math.round(y)]});
+		this.array.push({process:'moveTo',args:[x,y]});
 	},
-
 	lineTo:function(x,y){
-		this.array.push({p:'LT',args:[Math.round(x),Math.round(y)]});
+		this.array.push({process:'lineTo',args:[x,y]});
 	},
-
 	closePath:function(){
-		this.array.push({p:'CP'});
+		this.array.push({process:'closePath'});
 	},
 	stroke:function(){
-		this.array.push({p:'ST'});
+		this.array.push({process:'stroke'});
 	},
 	setStrokeStyle:function(style){
-		this.array.push({p:'SS',args:style});
+		this.array.push({process:'strokeStyle',args:style});
 	},
 	setFillStyle:function(style){
-		this.array.push({p:'FS',args:style});
+		this.array.push({process:'fillStyle',args:style});
 	},
-
 	fill:function(){
-		this.array.push({p:'FL'});
+		this.array.push({process:'fill'});
 	},
-
 	arc:function(x, y, r, val, pi, flg){
-		this.array.push({p:'AC',args: [Math.round(x),Math.round(y),r,val, pi, flg]});
+		this.array.push({process:'arc',args: [x,y,r,val, pi, flg]});
 	}
 }
