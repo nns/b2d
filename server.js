@@ -61,8 +61,10 @@ var	b2Vec2 				= Box2D.Common.Math.b2Vec2
 	;
 
 var world;
+var worldCount = 0;
 function init(socket) {
 	world = new b2World(new b2Vec2(0, 10),true);
+	worldCount++;
 	var fixDef = new b2FixtureDef;
 	fixDef.density = 1.0;
 	fixDef.friction = 0.5;
@@ -74,9 +76,12 @@ function init(socket) {
 	fixDef.shape = new b2PolygonShape;
 	fixDef.shape.SetAsBox(20,2);
 	bodyDef.position.Set(10,400/ 30 + 1.8);
-	world.CreateBody(bodyDef).CreateFixture(fixDef);
+	var _bottom = world.CreateBody(bodyDef);
+	_bottom.CreateFixture(fixDef);
+
 	bodyDef.position.Set(10, -1.8);
-	world.CreateBody(bodyDef).CreateFixture(fixDef);
+	var _top = world.CreateBody(bodyDef);
+	_top.CreateFixture(fixDef);
 	fixDef.shape.SetAsBox(2,14);
 	bodyDef.position.Set(-1.8, 13);
 	world.CreateBody(bodyDef).CreateFixture(fixDef);
@@ -88,9 +93,8 @@ function init(socket) {
 	bodyDef.type = b2Body.b2_dynamicBody;
 	function setShape(){
 		var fixture = new b2FixtureDef();
-
-		var x = Math.floor(Math.random() * 10);
-		if(x < 5){
+		
+		if(worldCount % 2 == 0){
 			for(var i = 0; i < 15; ++i) {
 				if(Math.random() > 0.5) {
 					fixture.shape = new b2PolygonShape;
@@ -100,24 +104,25 @@ function init(socket) {
 				}
 				bodyDef.position.x = Math.random() * 10;
 				bodyDef.position.y = Math.random() * 10;
-				fixture.density = Math.random() * 1;
+				fixture.density = Math.random() * 10;
 				fixture.friction = Math.random() * 1;
 				fixture.restitution = Math.random() * 1;
 				world.CreateBody(bodyDef).CreateFixture(fixture);
 			}
 		}
-		if(x >= 5){
-			for(var i = 0; i < 100; i++){
+		if(worldCount % 2 == 1){
+			world.DestroyBody(_top);
+			var x = Math.random() > 0.5 ? 1 : 0;
+			console.log(x);
+			for(var i = 0; i < 60; i++){
 				fixture.density = Math.random() * 1;
-				fixture.friction = Math.random() >0.5? 1:0;
-				fixture.restitution = Math.random() * 1;
-				setTimeout(function(){
-					fixture.shape = new b2PolygonShape;
-					fixture.shape.SetAsBox(0.4,0.4);
-					bodyDef.position.x = 5 + (Math.random()+0.1 );
-					bodyDef.position.y = 1;
-					world.CreateBody(bodyDef).CreateFixture(fixture);
-				},100*i);
+				fixture.friction = x;
+				fixture.restitution = x;
+				fixture.shape = new b2PolygonShape;
+				fixture.shape.SetAsBox(0.3,0.3);
+				bodyDef.position.x = 5 + (Math.random()+0.01 );
+				bodyDef.position.y = 1 - i;
+				world.CreateBody(bodyDef).CreateFixture(fixture);
 			}
 		}
 	}
@@ -136,8 +141,9 @@ function init(socket) {
 		update();
 		rm.socket.volatile.emit('action', rm.array);
 		rm.array = [];
-	}, 1000/24);
+	}, 1000/fps);
 }
+var fps = 60;
 //var i = 0;
 //var isMouseDown;
 //var mouseJoint;
@@ -146,7 +152,7 @@ function init(socket) {
 //var mousePVec;
 //var selectedBody;
 function update(){
-	world.Step(1/24, 10, 10);
+	world.Step(1/fps, 10, 10);
 	for(var i in mm){
 		var data = mm[i];
 		if(data.isMouseDown &&(!data.mouseJoint)){
@@ -155,7 +161,7 @@ function update(){
 				var md = new b2MouseJointDef();
 				md.bodyA = world.GetGroundBody();
 				md.bodyB = body;
-				md.target.Set(data.clientx, clienty);
+				md.target.Set(data.clientx, data.clienty);
 				md.collideConnected = true;
 				md.maxForce = 300.0 * body.GetMass();
 				data.mouseJoint = world.CreateJoint(md);
