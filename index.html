@@ -37,8 +37,6 @@
 					counter++;
 	   			var tmp = array.slice(0);
 	   			if(tmp.length == 0) return;
-					//ctx.clearRect.call(ctx,0,0,600,400);
-					//console.log('clear');
 		   		tmp.forEach(function(v,i){
 		   			v.forEach(function(vv,ii){
 			   			var data = vv.args;
@@ -46,7 +44,7 @@
 				   			case 'beginPath':ctx.beginPath();break;
 				   			case 'moveTo':ctx.moveTo.apply(ctx,data);break;
 				   			case 'lineTo':ctx.lineTo.apply(ctx,data);break;
-							case 'closePath':ctx.closePath();break;
+								case 'closePath':ctx.closePath();break;
 				   			case 'stroke':ctx.stroke();break;
 				   			case 'fill':ctx.fill();break;
 				   			case 'arc':ctx.arc.apply(ctx,data);break;
