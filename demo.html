@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+   <head>
+      <title>demo</title>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="/javascripts/base64.js"></script>
+      <script src="/javascripts/inflate.js"></script>
+	   <script type="text/javascript">
+		function getElementPosition(element) {
+			 	var elem=element, tagname="", x=0, y=0;
+			 	while((typeof(elem) == "object") && (typeof(elem.tagname) != "undefined")) {
+				 y += elem.offsettop;
+				 x += elem.offsetleft;
+				 tagname = elem.tagname.touppercase();
+				 if(tagname == "body")
+					 elem=0;
+				if(typeof(elem) == "object") {
+					if(typeof(elem.offsetparent) == "object")
+						elem = elem.offsetparent;
+				}
+			}
+			return {x: x, y: y};
+		}
+		function init(){
+	   		var canvas = document.getElementById('canvas');
+  			var ctx = canvas.getContext('2d');
+  			ctx.strokeStyle = '#eee';
+	   		var socket = io.connect();
+	   		var array = [];
+	 	  	socket.on('action',function(data){
+	 	  		array.push(JSON.parse(zip_inflate(base64decode(data))));
+	   		});
+	   		setInterval(update,1000/60);
+			var counter = 0;
+	   		function update(){
+					counter++;
+	   			var tmp = array.slice(0);
+	   			if(tmp.length == 0) return;
+		   		tmp.forEach(function(v,i){
+		   			v.forEach(function(vv,ii){
+			   			var data = vv.args;
+			   			switch(vv.p){
+				   			case 'BP':ctx.beginPath();break;
+				   			case 'MT':ctx.moveTo.apply(ctx,data);break;
+				   			case 'LT':ctx.lineTo.apply(ctx,data);break;
+							case 'CP':ctx.closePath();break;
+				   			case 'ST':ctx.stroke();break;
+				   			case 'FL':ctx.fill();break;
+				   			case 'AC':ctx.arc.apply(ctx,data);break;
+				   			case 'CR':ctx.clearRect.apply(ctx,data);break;
+				   			case 'SS':ctx.strokeStyle = data;break;
+							case 'FS':ctx.fillStyle = data;break;
+			   			}
+		   			});
+		   			array.shift();
+		   		});
+	   		}
+			var canvasPosition = getElementPosition(canvas);
+			
+			canvas.addEventListener("mousedown", function(e) {
+				socket.emit('mouse down');
+				handleMouseMove(e);
+				canvas.addEventListener("mousemove", handleMouseMove, true);
+			}, true);
+
+			canvas.addEventListener("mouseup", function() {
+				canvas.removeEventListener("mousemove", handleMouseMove, true);
+				socket.emit('mouse up');
+			}, true);
+
+			var tid;
+			var lock;
+			function handleMouseMove(e) {
+				if(!lock){
+					lock = true;
+					setTimeout(function(){lock = false;},100);
+					var mouseX = (e.clientX - canvasPosition.x) / 30;
+					var mouseY = (e.clientY - canvasPosition.y) / 30;
+					socket.emit('mouse move',{x:mouseX, y:mouseY});
+				}
+			}
+		}
+	   </script>
+   </head>
+   <body onload="init();">
+  	<canvas id='canvas' width='600' height='400' style='background-color:#333'></canvas>
+		<br/>
+		<a target="_blank" href="http://code.google.com/p/box2dweb/">http://code.google.com/p/box2dweb/</a>
+		<br>
+		<a href="/reset">reset</a>
+   </body>
+</html>
