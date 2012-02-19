@@ -30,7 +30,7 @@ app.configure('production', function(){
 });
 
 // Routes
-app.get('/demo', function(req, res){
+app.get('/', function(req, res){
 	res.sendfile('index.html');
 });
 
@@ -38,7 +38,7 @@ var intervalid;
 app.get('/reset',function(req, res){
 	clearInterval(intervalid);
 	isInit = false;
-	res.redirect('/demo');
+	res.redirect('/');
 });
 
 app.listen(process.argv[2] || 80);
@@ -228,7 +228,7 @@ io.configure(function () {
 });
 io.configure('development', function () {
 	io.set('transports', ['websocket', 'xhr-polling']);
-	io.enable('log');
+	io.enable('log',1);
 });
 
 
